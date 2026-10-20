@@ -1,7 +1,7 @@
 {
-  "name": "meu-proxy-minecraft",
+  "name": "chrome-client",
   "version": "1.0.0",
-  "description": "Proxy WebSocket<->TCP + site do Minecraft Web Client (sem dependencias)",
+  "description": "Chrome Client - Minecraft no browser + proxy WebSocket<->TCP (sem dependencias)",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "engines": { "node": ">=18" },

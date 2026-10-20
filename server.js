@@ -236,14 +236,14 @@ function bridge (socket, tcp, ip, label, pending) {
 // ---------- site estático (já comprimido em memória) ----------
 const PUBLIC = path.join(__dirname, 'public')
 const cache = new Map()
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon', '.svg': 'image/svg+xml', '.txt': 'text/plain' }
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon', '.svg': 'image/svg+xml', '.txt': 'text/plain', '.webmanifest': 'application/manifest+json', '.webp': 'image/webp' }
 function loadFile (rel) {
   if (cache.has(rel)) return cache.get(rel)
   const file = path.join(PUBLIC, rel)
   if (!file.startsWith(PUBLIC) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return null
   const raw = fs.readFileSync(file)
   const type = MIME[path.extname(file)] || 'application/octet-stream'
-  const gz = /\.(html|js|css|json|svg|txt)$/.test(file) ? zlib.gzipSync(raw, { level: 9 }) : null
+  const gz = /\.(html|js|css|json|svg|txt|webmanifest)$/.test(file) ? zlib.gzipSync(raw, { level: 9 }) : null
   const e = { raw, gz, type }
   cache.set(rel, e); return e
 }

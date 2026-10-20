@@ -1,4 +1,4 @@
-# Meu Proxy Minecraft (zero dependências)
+# Chrome Client (Minecraft no browser + proxy, zero dependências)
 
 Esse zip já tem **tudo**: o proxy (`server.js`) e o site do Minecraft (`public/index.html`).
 O site já vem configurado pra usar o proxy do próprio endereço onde você hospedar. Não precisa configurar nada.
