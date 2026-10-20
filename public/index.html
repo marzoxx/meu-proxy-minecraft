@@ -10,6 +10,35 @@
  Tambem funciona assim: seusite.com/minecraft?proxy=meu-proxy.justrunmy.app -->
 <script>window.MC_PROXY_URL = ""</script>
 <script>
+/* Chrome Client: botão para abrir links que aparecem no chat (captchas de anti-bot, /register, etc.) */
+(function(){
+  var seen={}, shown=null, RE=/https?:\/\/[^\s"'<> ]+/g;
+  function clean(u){return u.replace(/[)\].,;:!?'"]+$/,'')}
+  function show(url){
+    var b=document.getElementById('cc-link');
+    if(!b){b=document.createElement('div');b.id='cc-link';
+      b.style.cssText='position:fixed;right:12px;top:58px;z-index:100003;max-width:min(78vw,420px);background:rgba(0,0,0,.85);color:#fff;border:2px solid #7CFC7C;font:13px monospace;padding:10px 12px;display:flex;flex-direction:column;gap:8px';
+      document.body.appendChild(b)}
+    b.innerHTML='';
+    var t=document.createElement('div');t.style.cssText='color:#7CFC7C';t.textContent='Link no chat:';
+    var u=document.createElement('div');u.style.cssText='word-break:break-all;color:#ddd;font-size:11px';u.textContent=url;
+    var row=document.createElement('div');row.style.cssText='display:flex;gap:8px';
+    function btn(txt,fn,bg){var x=document.createElement('button');x.textContent=txt;x.style.cssText='flex:1;font:13px monospace;padding:8px;border:2px solid #fff;color:#fff;background:'+bg+';cursor:pointer';x.onclick=function(e){e.stopPropagation();fn()};return x}
+    row.appendChild(btn('Abrir',function(){window.open(url,'_blank','noopener')},'#2e7d32'));
+    row.appendChild(btn('Copiar',function(){try{navigator.clipboard.writeText(url)}catch(e){};},'#444'));
+    row.appendChild(btn('X',function(){b.remove()},'#7a1f1f'));
+    b.appendChild(t);b.appendChild(u);b.appendChild(row);shown=url}
+  function scan(){
+    if(!document.body)return;
+    var txt=document.body.innerText||'';var m=txt.match(RE);if(!m)return;
+    for(var i=m.length-1;i>=0;i--){var url=clean(m[i]);
+      if(url.indexOf(location.host)>=0||/mcraft\.fun|koyeb\.app|onrender\.com\/?$/.test(url))continue;
+      if(!seen[url]){seen[url]=1;show(url)}break}}
+  function start(){new MutationObserver(function(){clearTimeout(start.t);start.t=setTimeout(scan,400)}).observe(document.body,{childList:true,subtree:true,characterData:true})}
+  if(document.body)start();else document.addEventListener('DOMContentLoaded',start);
+})();
+</script>
+<script>
 /* Chrome Client: seletor de proxy */
 (function(){
   var KEY='cc-proxy';
