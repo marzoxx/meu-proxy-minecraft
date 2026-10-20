@@ -25,17 +25,18 @@
     var txt=document.body?document.body.innerText||'':'';
     if(!/kicked you|disconnected from the server/i.test(txt)){ if(!busy){ var o=st(); if(o.n&&Date.now()-o.t>120000) save({}); } return }
     var btn=findBtn('reconnect'); if(!btn) return;
-    if(BLOCK.test(txt)&&!document.getElementById('cc-help')){
+    var m=txt.match(/(?:kick reason:|end reason:)([\s\S]*?)(?:last status:|$)/i); var reason=m?m[1].trim():'';
+    if(BLOCK.test(reason)&&!document.getElementById('cc-help')){
       var h=document.createElement('div');h.id='cc-help';
       h.style.cssText='position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:100001;max-width:92vw;background:rgba(0,0,0,.85);color:#ffd36b;font:13px/1.4 monospace;padding:8px 12px;border:2px solid #ffd36b;text-align:center';
       h.textContent='Este servidor bloqueia ligações de proxies/datacenters. Experimenta um dos servidores recomendados ou outro servidor.';
       document.body.appendChild(h); setTimeout(function(){h.remove()},12000); return;
     }
-    if(busy||!RETRY.test(txt)) return;
+    if(busy||!RETRY.test(reason)) return;
     var o=st(); if(!o.n||Date.now()-o.t>120000)o={n:0,t:Date.now()};
     if(o.n>=MAX){toast('O anti-bot do servidor não deixou entrar ('+MAX+' tentativas).');setTimeout(hideToast,6000);save({n:MAX,t:Date.now()});return}
     o.n++;o.t=Date.now();save(o);busy=true;
-    var wait=/too fast|wait/i.test(txt)?6000:3500, left=Math.round(wait/1000);
+    var wait=/too fast|wait/i.test(reason)?6000:3500, left=Math.round(wait/1000);
     toast('Anti-bot: a tentar outra vez ('+o.n+'/'+MAX+') em '+left+'s... não mexas em nada');
     var iv=setInterval(function(){left--;if(left>0)toast('Anti-bot: a tentar outra vez ('+o.n+'/'+MAX+') em '+left+'s... não mexas em nada')},1000);
     setTimeout(function(){clearInterval(iv);hideToast();var b=findBtn('reconnect');if(b)b.click();setTimeout(function(){busy=false},4000)},wait);
