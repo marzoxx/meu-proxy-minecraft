@@ -56,3 +56,14 @@ Não há nenhum código que contorne isto — é uma regra da rede deles.
 Koyeb, Railway, ou uma VPS (Oracle Cloud Free). Se quiseres manter o site no GoDaddy,
 põe no topo do `index.html`:
     window.MC_PROXY_URL = "https://O-TEU-PROXY.onrender.com"
+
+
+## Servidores que funcionam sempre (já na lista do site)
+Os servidores `wss://` (play.mcraft.fun, play.webmc.fun, ws.fuchsmc.net…) são feitos para clientes web:
+o browser liga-se direto a eles, sem passar pelo proxy, por isso não há bloqueio de IP de datacenter.
+Servidores normais grandes (Jartex, Mush, Mineberry…) bloqueiam IPs de datacenter como o do Render
+("You can not join from this connection") — isso não tem solução no Render.
+
+## Anti-sono
+No Render o proxy faz um ping a si próprio a cada 10 min para não adormecer.
+Atenção: o plano Free tem 750 h/mês para a conta toda. Para desligar: variável `KEEP_AWAKE=0`.

@@ -341,5 +341,15 @@ server.on('upgrade', async (req, socket) => {
 })
 
 server.listen(PORT, '0.0.0.0', () => log('Proxy Minecraft online na porta', PORT))
+
+// ---------- anti-sono do Render (plano Free adormece após 15 min sem tráfego) ----------
+// O Render define RENDER_EXTERNAL_URL sozinho. Para desligar: variável KEEP_AWAKE=0
+const SELF_URL = process.env.RENDER_EXTERNAL_URL
+if (SELF_URL && process.env.KEEP_AWAKE !== '0') {
+  setInterval(() => {
+    fetch(SELF_URL.replace(/\/$/, '') + '/health').catch(() => {})
+  }, 10 * 60 * 1000)
+  log('Anti-sono ativo para', SELF_URL)
+}
 process.on('uncaughtException', e => log('uncaught', e.message))
 process.on('unhandledRejection', e => log('unhandled', e && e.message))
