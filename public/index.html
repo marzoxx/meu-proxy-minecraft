@@ -10,6 +10,50 @@
  Tambem funciona assim: seusite.com/minecraft?proxy=meu-proxy.justrunmy.app -->
 <script>window.MC_PROXY_URL = ""</script>
 <script>
+/* Chrome Client: seletor de proxy */
+(function(){
+  var KEY='cc-proxy';
+  var LIST=[
+    {name:'Chrome Client (Render)',url:''},
+    {name:'MCraft 1',url:'https://proxy.mcraft.fun'},
+    {name:'MCraft 2',url:'https://proxy2.mcraft.fun'},
+    {name:'MCraft 3',url:'https://proxy3.mcraft.fun'},
+    {name:'Koyeb',url:'https://pwc.koyeb.app'}
+  ];
+  function get(){try{return localStorage.getItem(KEY)||''}catch(e){return''}}
+  function set(v){try{localStorage.setItem(KEY,v||'')}catch(e){}}
+  // aplicar a escolha antes do jogo arrancar
+  try{var saved=get();if(saved!==null){var url=saved||location.origin,all=LIST.map(function(x){return x.url||location.origin});if(all.indexOf(url)<0)all.push(url);
+    var val=JSON.stringify({proxies:all,selected:url});localStorage.setItem('minecraft-web-client:proxiesData',val);localStorage.setItem('proxiesData',val)}}catch(e){}
+  function current(){try{var u=new URLSearchParams(location.search).get('proxy');if(u)return u}catch(e){}return get()}
+  function label(u){for(var i=0;i<LIST.length;i++)if(LIST[i].url===u)return LIST[i].name;return u?u.replace(/^https?:\/\//,''):LIST[0].name}
+  function choose(u){set(u);var q=new URLSearchParams(location.search);q.delete('proxy');var qs=q.toString();location.href=location.pathname+(qs?'?'+qs:'')}
+  var css='#cc-pbtn{position:fixed;left:56px;top:10px;z-index:100002;background:rgba(0,0,0,.65);color:#fff;border:2px solid #fff;font:13px monospace;padding:6px 10px;cursor:pointer}'+
+   '#cc-ppanel{position:fixed;left:56px;top:46px;z-index:100002;background:rgba(0,0,0,.9);color:#fff;border:2px solid #fff;font:13px monospace;min-width:260px;max-width:92vw}'+
+   '#cc-ppanel div.r{padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid rgba(255,255,255,.15)}'+
+   '#cc-ppanel div.r:hover{background:rgba(255,255,255,.12)}#cc-ppanel .on{color:#7CFC7C}#cc-ppanel .off{color:#ff6b6b}#cc-ppanel .sel{color:#ffd36b}'+
+   '#cc-ppanel .h{padding:8px 12px;color:#aaa;font-size:11px}';
+  function ping(u,el){var base=(u||location.origin).replace(/\/$/,''),t=Date.now(),done=false;
+    var to=setTimeout(function(){if(!done){done=true;el.textContent='offline';el.className='off'}},6000);
+    fetch(base+'/api/vm/net/connect',{cache:'no-store'}).then(function(r){if(done)return;done=true;clearTimeout(to);el.textContent=r.ok?(Date.now()-t)+' ms':'erro';el.className=r.ok?'on':'off'}).catch(function(){if(done)return;done=true;clearTimeout(to);el.textContent='offline';el.className='off'})}
+  function openPanel(){var old=document.getElementById('cc-ppanel');if(old){old.remove();return}
+    var p=document.createElement('div');p.id='cc-ppanel';var cur=current();
+    var h=document.createElement('div');h.className='h';h.textContent='Escolhe o proxy (cada um tem um IP diferente):';p.appendChild(h);
+    LIST.concat(cur&&!LIST.some(function(x){return x.url===cur})?[{name:label(cur),url:cur}]:[]).forEach(function(it){
+      var r=document.createElement('div');r.className='r';var n=document.createElement('span');n.textContent=(it.url===cur?'> ':'')+it.name;if(it.url===cur)n.className='sel';
+      var st=document.createElement('span');st.textContent='...';r.appendChild(n);r.appendChild(st);r.onclick=function(){if(it.url!==cur)choose(it.url);else p.remove()};p.appendChild(r);ping(it.url,st)});
+    var c=document.createElement('div');c.className='r';c.textContent='+ Outro proxy...';c.onclick=function(){var v=prompt('URL do proxy (ex: https://meu-proxy.onrender.com)');if(v){v=v.trim();if(!/^https?:\/\//.test(v))v='https://'+v;choose(v.replace(/\/$/,''))}};p.appendChild(c);
+    document.body.appendChild(p)}
+  function inMenu(){var t=document.body?document.body.innerText||'':'';return /Connect to server|Join Java Servers/.test(t)&&!/kicked you|disconnected from the server/i.test(t)}
+  function tick(){var b=document.getElementById('cc-pbtn'),show=inMenu();
+    if(show&&!b){b=document.createElement('div');b.id='cc-pbtn';b.onclick=openPanel;document.body.appendChild(b)}
+    if(b){b.style.display=show?'block':'none';b.textContent='Proxy: '+label(current())+' ▾'}
+    if(!show){var p=document.getElementById('cc-ppanel');if(p)p.remove()}}
+  function start(){var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);setInterval(tick,700)}
+  if(document.body)start();else document.addEventListener('DOMContentLoaded',start);
+})();
+</script>
+<script>
 /* Chrome Client: retry automático para anti-bots + explicação dos erros de ligação */
 (function(){
   var RETRY=/robot|bot.?check|anti.?bot|verif|try again|reconnect|rejoin|re-join|join again|captcha|too fast|wait a few seconds/i;
