@@ -1,0 +1,9 @@
+{
+  "name": "meu-proxy-minecraft",
+  "version": "1.0.0",
+  "description": "Proxy WebSocket<->TCP + site do Minecraft Web Client (sem dependencias)",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}

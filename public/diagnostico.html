@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnóstico do proxy</title>
+<style>body{font:16px system-ui;background:#111;color:#eee;padding:14px;max-width:760px;margin:auto}input,button{font:inherit;padding:10px;margin:4px 0;width:100%;box-sizing:border-box;border-radius:8px;border:1px solid #555;background:#222;color:#eee}button{background:#2a7;border:0;font-weight:700}pre{background:#000;padding:12px;border-radius:8px;white-space:pre-wrap;word-break:break-word;min-height:120px}</style></head><body>
+<h2>Diagnóstico do proxy Minecraft</h2>
+<label>Proxy (vazio = este site)</label><input id="p" placeholder="https://meu-proxy...">
+<label>Server</label><input id="h" value="play.bucketry.net:25565">
+<button id="go">Testar</button><pre id="o">Clique em Testar.</pre>
+<script>
+const $=i=>document.getElementById(i);let out='';const log=t=>{out+=t+'\n';$('o').textContent=out};
+const vi=n=>{const b=[];do{let x=n&127;n>>>=7;if(n)x|=128;b.push(x)}while(n);return b};
+const str=s=>{const e=new TextEncoder().encode(s);return[...vi(e.length),...e]};
+const pkt=(id,d)=>{const b=[...vi(id),...d];return new Uint8Array([...vi(b.length),...b])};
+function rv(a,o){let r=0,s=0,b;do{if(o.i>=a.length)return null;b=a[o.i++];r|=(b&127)<<s;s+=7}while(b&128);return r}
+async function run(){
+ out='';const sp=$('h').value.trim().split(':');const host=sp[0],port=+(sp[1]||25565);
+ let base=$('p').value.trim()||location.origin;if(!/^https?:/.test(base))base='https://'+base;base=base.replace(/\/$/,'');
+ log('Proxy: '+base+'\nServer: '+host+':'+port);const t0=Date.now();
+ let j;try{const r=await fetch(base+'/api/vm/net/connect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({host,port})});const tx=await r.text();
+  try{j=JSON.parse(tx)}catch{log('❌ O proxy NÃO respondeu como proxy Minecraft (status '+r.status+'). Resposta: '+tx.slice(0,150));return}
+  if(j.error){log('❌ O proxy não conseguiu abrir o server: '+JSON.stringify(j.error));return}
+  log('✅ 1/3 Proxy abriu conexão TCP com o server ('+j.remote.address+')')}catch(e){log('❌ Não consegui falar com o proxy: '+e.message);return}
+ const ws=new WebSocket(base.replace(/^http/,'ws')+'/api/vm/net/socket?token='+j.token);ws.binaryType='arraybuffer';let buf=[],got=0,done=false,comp=false;
+ const end=m=>{if(done)return;done=true;log(m)};
+ const to=setTimeout(()=>{end('⏱ 10s sem resposta do server (ficou mudo).');try{ws.close()}catch{}},10000);
+ ws.onerror=()=>end('❌ WebSocket falhou. A HOSPEDAGEM provavelmente não aceita WebSocket.');
+ ws.onopen=()=>{log('✅ 2/3 WebSocket aberto ('+(Date.now()-t0)+'ms). Enviando login offline...');
+  ws.send(pkt(0,[...vi(762),...str(host),port>>8,port&255,...vi(2)]));ws.send(pkt(0,[...str('mcrafter854'),0]))};
+ ws.onclose=e=>{clearTimeout(to);end('🔌 WebSocket fechou após '+((Date.now()-t0)/1000).toFixed(1)+'s, código '+e.code+', recebi '+got+' bytes. '+(got?'':'O server fechou SEM mandar nada (típico de bloqueio de IP de hospedagem ou proteção anti-bot).'))};
+ ws.onmessage=ev=>{if(typeof ev.data==='string')return;const u=new Uint8Array(ev.data);got+=u.length;buf.push(...u);
+  while(true){const o={i:0};const len=rv(buf,o);if(len===null||buf.length<o.i+len)break;const body=buf.slice(o.i,o.i+len);buf=buf.slice(o.i+len);const q={i:0};
+   if(comp){const dl=rv(body,q);if(dl>0){log('(pacote comprimido ignorado)');continue}}
+   const id=rv(body,q);
+   if(id===0){const l=rv(body,q);log('🚫 3/3 O SERVER RECUSOU. Motivo dele:\n'+new TextDecoder().decode(new Uint8Array(body.slice(q.i,q.i+l))))}
+   else if(id===1){log('🔐 3/3 O SERVER É PREMIUM (online-mode): pediu login Microsoft. O proxy está OK! Use o endereço com :ms no final ou escolha um server cracked.')}
+   else if(id===3){comp=true}
+   else if(id===2){log('🎉 3/3 LOGIN OFFLINE ACEITO! Server cracked e o proxy está 100% OK.')}
+   else log('Pacote id '+id)}};
+}
+$('go').onclick=run;
+</script></body></html>
